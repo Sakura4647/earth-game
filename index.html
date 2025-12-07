@@ -146,11 +146,11 @@
                         </li>
                         <li class="flex items-start gap-2">
                             <span class="font-bold text-earth-dark">②</span>
-                            <span>請將物件拖曳到下方對應的小碗中（□、△、○）</span>
+                            <span>請將這三種物件分別拖曳到對應的小碗中（□、△、○）</span>
                         </li>
                         <li class="flex items-start gap-2">
                             <span class="font-bold text-earth-dark">③</span>
-                            <span>物件會隨機出現在上、中、下區域，請眼明手快</span>
+                            <span>計時 20 秒，依照分類正確的數量計分</span>
                         </li>
                     </ul>
                 </div>
@@ -258,17 +258,17 @@
                     <h4 class="text-base font-bold text-wood-500 mb-2 border-b border-wood-100 pb-1 tracking-wider">🏅 計分方式</h4>
                     <div class="space-y-2 text-sm text-wood-700 tracking-wide">
                         <div class="flex justify-between items-center whitespace-nowrap gap-2">
-                            <span class="font-bold text-earth-dark w-28">分類 17～20 件</span>
+                            <span class="font-bold text-earth-dark w-28">分類 35 件以上</span>
                             <span class="font-bold text-wood-700">3分</span>
                             <span class="text-right flex-1 text-wood-500 overflow-hidden text-ellipsis">脾胃強健，動作靈巧</span>
                         </div>
                         <div class="flex justify-between items-center whitespace-nowrap gap-2">
-                            <span class="font-bold text-earth-dark w-28">分類 10～16 件</span>
+                            <span class="font-bold text-earth-dark w-28">分類 21～34 件</span>
                             <span class="font-bold text-wood-700">2分</span>
                             <span class="text-right flex-1 text-wood-500 overflow-hidden text-ellipsis">脾胃不錯，穩中帶進</span>
                         </div>
                         <div class="flex justify-between items-center whitespace-nowrap gap-2">
-                            <span class="font-bold text-earth-dark w-28">分類 0～9 件</span>
+                            <span class="font-bold text-earth-dark w-28">分類 0～20 件</span>
                             <span class="font-bold text-wood-700">1分</span>
                             <span class="text-right flex-1 text-wood-500 overflow-hidden text-ellipsis">脾胃警告，需多調養</span>
                         </div>
@@ -300,8 +300,8 @@
                 <h3 class="text-2xl font-bold text-center text-wood-800 mb-4 border-b border-wood-100 pb-3 tracking-widest">📜 遊戲規則</h3>
                 <ul class="space-y-4 text-wood-800 font-medium tracking-wide">
                     <li class="flex gap-2 text-base"><span class="font-bold text-earth-dark">①</span><span>有三種物件：◼ 正方形、▲ 三角形、● 圓形</span></li>
-                    <li class="flex gap-2 text-base"><span class="font-bold text-earth-dark">②</span><span>請將物件拖曳到下方對應的小碗中</span></li>
-                    <li class="flex gap-2 text-base"><span class="font-bold text-earth-dark">③</span><span>物件會輪流出現在上、中、下區域，請注意全畫面</span></li>
+                    <li class="flex gap-2 text-base"><span class="font-bold text-earth-dark">②</span><span>請將這三種物件分別拖曳到對應的小碗中（□、△、○）</span></li>
+                    <li class="flex gap-2 text-base"><span class="font-bold text-earth-dark">③</span><span>計時 20 秒，依照分類正確的數量計分</span></li>
                 </ul>
             </div>
         </div>
@@ -672,13 +672,13 @@
 
             calculateResult() {
                 const count = STATE.classifiedCount;
-                if (count >= 17) {
+                if (count >= 35) {
                     return { 
                         score: 3, 
                         message: '脾胃強健，動作靈巧', 
                         subMessage: '節奏穩又俐落，很給力！' 
                     };
-                } else if (count >= 10) {
+                } else if (count >= 21) {
                     return { 
                         score: 2, 
                         message: '脾胃不錯，穩中帶進', 
