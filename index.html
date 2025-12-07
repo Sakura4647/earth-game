@@ -86,25 +86,25 @@
         transform: scale(1.1);
       }
       
-      /* Shapes */
+      /* Shapes - Increased size for better visibility */
       .shape-square {
-        width: 60px;
-        height: 60px;
+        width: 70px;
+        height: 70px;
         background-color: #5e514d; /* wood-800 */
-        border-radius: 8px;
+        border-radius: 12px;
       }
       .shape-circle {
-        width: 60px;
-        height: 60px;
+        width: 70px;
+        height: 70px;
         background-color: #a18e87; /* wood-500 */
         border-radius: 50%;
       }
       .shape-triangle {
         width: 0;
         height: 0;
-        border-left: 35px solid transparent;
-        border-right: 35px solid transparent;
-        border-bottom: 60px solid #72635e; /* wood-700 */
+        border-left: 40px solid transparent;
+        border-right: 40px solid transparent;
+        border-bottom: 70px solid #72635e; /* wood-700 */
       }
 
       /* Bins */
@@ -146,11 +146,11 @@
                         </li>
                         <li class="flex items-start gap-2">
                             <span class="font-bold text-earth-dark">②</span>
-                            <span>請將這三種物件分別拖曳到對應的小碗中（□、△、○）</span>
+                            <span>請將物件拖曳到下方對應的小碗中（□、△、○）</span>
                         </li>
                         <li class="flex items-start gap-2">
                             <span class="font-bold text-earth-dark">③</span>
-                            <span>計時 20 秒，依照分類正確的數量計分</span>
+                            <span>物件會隨機出現在上、中、下區域，請眼明手快</span>
                         </li>
                     </ul>
                 </div>
@@ -193,26 +193,28 @@
             <!-- Game Area -->
             <div class="flex-1 relative flex flex-col w-full max-w-2xl mx-auto">
                 <!-- Spawning Zone (Upper Area) -->
-                <div id="spawn-zone" class="flex-1 relative overflow-hidden bg-wood-50/30 m-4 rounded-xl border-2 border-dashed border-wood-200">
-                    <!-- Shapes will be injected here -->
+                <!-- Removed overflow-hidden to allow dragging outside easily without clipping issues during transform, 
+                     although pointer events usually handle this, overflow-visible is safer for dragging UI -->
+                <div id="spawn-zone" class="flex-1 relative m-2">
+                    <!-- Shapes will be injected here. The container represents the playable area ABOVE bins. -->
                     <div id="shapes-container" class="w-full h-full relative"></div>
                 </div>
 
                 <!-- Bins Zone (Lower Area) -->
-                <div id="bins-zone" class="h-40 sm:h-48 flex justify-around items-end pb-6 px-4 gap-4">
+                <div id="bins-zone" class="h-40 sm:h-48 flex justify-around items-end pb-6 px-4 gap-4 bg-wood-50/50 border-t border-wood-200 rounded-t-2xl">
                     <!-- Square Bin -->
                     <div id="bin-square" data-type="square" class="bin relative w-24 h-24 sm:w-28 sm:h-28 bg-white border-4 border-wood-400 rounded-lg flex flex-col items-center justify-center shadow-inner">
-                        <span class="text-4xl text-wood-300 font-bold opacity-50">□</span>
+                        <span class="text-5xl text-wood-300 font-bold opacity-60">□</span>
                         <span class="absolute -bottom-8 text-wood-700 font-bold">正方形</span>
                     </div>
                     <!-- Triangle Bin -->
                     <div id="bin-triangle" data-type="triangle" class="bin relative w-24 h-24 sm:w-28 sm:h-28 bg-white border-4 border-wood-400 rounded-lg flex flex-col items-center justify-center shadow-inner">
-                        <span class="text-4xl text-wood-300 font-bold opacity-50">△</span>
+                        <span class="text-5xl text-wood-300 font-bold opacity-60">△</span>
                         <span class="absolute -bottom-8 text-wood-700 font-bold">三角形</span>
                     </div>
                     <!-- Circle Bin -->
                     <div id="bin-circle" data-type="circle" class="bin relative w-24 h-24 sm:w-28 sm:h-28 bg-white border-4 border-wood-400 rounded-lg flex flex-col items-center justify-center shadow-inner">
-                        <span class="text-4xl text-wood-300 font-bold opacity-50">○</span>
+                        <span class="text-5xl text-wood-300 font-bold opacity-60">○</span>
                         <span class="absolute -bottom-8 text-wood-700 font-bold">圓形</span>
                     </div>
                 </div>
@@ -298,8 +300,8 @@
                 <h3 class="text-2xl font-bold text-center text-wood-800 mb-4 border-b border-wood-100 pb-3 tracking-widest">📜 遊戲規則</h3>
                 <ul class="space-y-4 text-wood-800 font-medium tracking-wide">
                     <li class="flex gap-2 text-base"><span class="font-bold text-earth-dark">①</span><span>有三種物件：◼ 正方形、▲ 三角形、● 圓形</span></li>
-                    <li class="flex gap-2 text-base"><span class="font-bold text-earth-dark">②</span><span>請將這三種物件分別拖曳到對應的小碗中（□、△、○）</span></li>
-                    <li class="flex gap-2 text-base"><span class="font-bold text-earth-dark">③</span><span>計時 20 秒，依照分類正確的數量計分</span></li>
+                    <li class="flex gap-2 text-base"><span class="font-bold text-earth-dark">②</span><span>請將物件拖曳到下方對應的小碗中</span></li>
+                    <li class="flex gap-2 text-base"><span class="font-bold text-earth-dark">③</span><span>物件會輪流出現在上、中、下區域，請注意全畫面</span></li>
                 </ul>
             </div>
         </div>
@@ -323,6 +325,7 @@
             offsetY: 0,
             startLeft: 0,
             startTop: 0,
+            spawnZoneIndex: 0, // 0: Top, 1: Middle, 2: Bottom
             items: [] // Track DOM elements
         };
 
@@ -438,19 +441,32 @@
                 
                 el.appendChild(shapeInner);
 
-                // Random Position in container
-                // container size is relative, but usually takes up upper 50-60% of screen.
-                // We need to ensure it spawns inside.
+                // Calculate Position Logic (Round Robin Zones)
                 const containerW = this.els.shapesContainer.clientWidth;
                 const containerH = this.els.shapesContainer.clientHeight;
                 
-                // padding to avoid edge clipping
-                const pad = 70; 
-                const maxLeft = containerW - pad;
-                const maxTop = containerH - pad;
+                // Shape size approx (70px + padding)
+                const itemSize = 80;
                 
-                const left = Math.random() * (maxLeft - 10) + 10;
-                const top = Math.random() * (maxTop - 10) + 10;
+                // Divide height into 3 zones
+                const zoneHeight = (containerH - itemSize) / 3;
+                
+                // Get current zone index and increment
+                const zoneIndex = STATE.spawnZoneIndex;
+                STATE.spawnZoneIndex = (STATE.spawnZoneIndex + 1) % 3;
+                
+                // Calculate boundaries for the specific zone
+                // Zone 0: Top, Zone 1: Mid, Zone 2: Bottom (closest to bins)
+                const minY = zoneIndex * zoneHeight;
+                // Add padding so it doesn't touch the very edge
+                const safeMaxY = ((zoneIndex + 1) * zoneHeight) - 10;
+                const safeMinY = minY + 10;
+                
+                const top = safeMinY + Math.random() * (safeMaxY - safeMinY);
+                
+                // Random Left (Full width)
+                const maxLeft = containerW - itemSize;
+                const left = 10 + Math.random() * (maxLeft - 20);
 
                 el.style.left = `${left}px`;
                 el.style.top = `${top}px`;
@@ -478,18 +494,8 @@
                     STATE.startLeft = parseFloat(el.style.left);
                     STATE.startTop = parseFloat(el.style.top);
                     
-                    // Temporarily move to body or use fixed positioning logic to drag anywhere?
-                    // Actually, easiest is to translate.
-                    // But we want to drag FROM spawn-zone TO bins-zone.
-                    // If they are separate containers with overflow hidden, dragging out might be clipped.
-                    // Solution: When dragging starts, fix position to fixed/absolute on body, or ensure containers don't clip.
-                    // Our containers have overflow: visible (default) or flex?
-                    // "spawn-zone" has overflow-hidden in my code above. I should remove that if I want to drag out.
-                    // Wait, overflow-hidden is usually good for keeping random spawns inside. 
-                    // Let's remove overflow-hidden from spawn-zone for dragging to work across divs.
-                    document.getElementById('spawn-zone').classList.remove('overflow-hidden');
-                    
                     el.style.zIndex = 100;
+                    el.style.transform = 'scale(1.1)';
                 });
 
                 el.addEventListener('pointermove', (e) => {
@@ -497,11 +503,6 @@
                     e.preventDefault();
 
                     // Calculate new position relative to the container parent (game area)
-                    // Or simpler: Update left/top based on pointer delta?
-                    // Using clientX/Y directly for absolute positioning inside the closest relative parent.
-                    // Our parent is #shapes-container (relative).
-                    // We need to convert clientX to container-relative coords.
-                    
                     const containerRect = ui.els.shapesContainer.getBoundingClientRect();
                     const x = e.clientX - containerRect.left - STATE.offsetX;
                     const y = e.clientY - containerRect.top - STATE.offsetY;
@@ -525,6 +526,7 @@
                         el.style.transition = 'all 0.3s ease-out';
                         el.style.left = `${STATE.startLeft}px`;
                         el.style.top = `${STATE.startTop}px`;
+                        el.style.transform = 'scale(1)';
                         setTimeout(() => {
                             el.style.transition = 'transform 0.1s'; // Reset transition
                             el.style.zIndex = '';
@@ -534,7 +536,6 @@
                     }
 
                     STATE.dragItem = null;
-                    document.getElementById('spawn-zone').classList.add('overflow-hidden'); // Restore clipping
                     
                     // Clear hover effects
                     Object.values(ui.els.bins).forEach(b => b.classList.remove('drag-over'));
@@ -568,10 +569,19 @@
                 STATE.timeLeft = CONFIG.duration;
                 STATE.classifiedCount = 0;
                 
-                // Spawn initial shapes
-                for(let i=0; i<5; i++) {
-                    setTimeout(() => ui.spawnShape(), i * 100);
-                }
+                // Pick random start zone index
+                STATE.spawnZoneIndex = Math.floor(Math.random() * 3);
+                
+                // Spawn initial shapes - Spawn one by one to respect the rotation logic
+                let spawnCount = 0;
+                const initialInterval = setInterval(() => {
+                    if (spawnCount < 5) {
+                        ui.spawnShape();
+                        spawnCount++;
+                    } else {
+                        clearInterval(initialInterval);
+                    }
+                }, 100);
 
                 // Start Timer
                 if (STATE.timerId) clearInterval(STATE.timerId);
@@ -581,7 +591,7 @@
                     
                     // Maintain density
                     const currentCount = ui.els.shapesContainer.children.length;
-                    if (currentCount < CONFIG.maxSpawn && Math.random() > 0.7) {
+                    if (currentCount < CONFIG.maxSpawn && Math.random() > 0.6) {
                         ui.spawnShape();
                     }
                     
@@ -630,8 +640,9 @@
                 const containerRect = ui.els.shapesContainer.getBoundingClientRect();
                 
                 // Calculate center relative to container
-                const targetX = (binRect.left + binRect.width/2) - containerRect.left - 30; // 30 is half width of shape
-                const targetY = (binRect.top + binRect.height/2) - containerRect.top - 30;
+                // Shape center offset is approx 35 (half of 70)
+                const targetX = (binRect.left + binRect.width/2) - containerRect.left - 35; 
+                const targetY = (binRect.top + binRect.height/2) - containerRect.top - 35;
 
                 el.style.transition = 'all 0.2s ease-in';
                 el.style.left = `${targetX}px`;
@@ -642,7 +653,7 @@
                 // Remove after anim
                 setTimeout(() => {
                     el.remove();
-                    // Spawn new one to replace
+                    // Spawn new one to replace, keeping rotation
                     ui.spawnShape();
                 }, 200);
             },
